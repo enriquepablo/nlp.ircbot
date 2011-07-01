@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import re
 import sys
 import nl
@@ -52,11 +54,12 @@ def main():
     chan = sys.argv[2]
     reactor.connectTCP('irc.freenode.net', 6667,
                        MacarronicBotFactory('#' + chan, nickname=nick))
-    nl.kb.open(nick)
+    #nl.kb.open(nick)
     try:
         reactor.run()
     finally:
-        nl.kb.close()
+    #    nl.kb.close()
+        pass
 
 
 if __name__ == "__main__":
