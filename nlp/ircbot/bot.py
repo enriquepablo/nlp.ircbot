@@ -7,12 +7,15 @@ from twisted.words.protocols import irc
 from twisted.internet import protocol
 from twisted.internet import reactor
 from nlp.ircbot.compiler import yacc
+from nlp.ircbot import cmnds
 
 partial_msg = ''
 partial = False
 
 
 class MacarronicBot(irc.IRCClient):
+
+
     def _get_nickname(self):
         return self.factory.nickname
     nickname = property(_get_nickname)
@@ -26,12 +29,20 @@ class MacarronicBot(irc.IRCClient):
 
     def privmsg(self, user, channel, msg):
         if user and self.nickname in msg:
-            msg = re.compile(self.nickname + "[:,]* ?", re.I).sub('', msg)
+            msg = re.compile(self.nickname + "[:, ]*", re.I).sub('', msg)
             prefix = user.split('!', 1)[0] + ': '
-            if msg == 'hola':
-                resp = u'qué tal'
-            else:
+            cmnd = msg.split(':')
+            if len(cmnd) == 1:
                 resp = yacc.parse(msg)
+                if resp is None:
+                    resp = 'Do not understand'
+            elif len(cmnd) == 2:
+                try:
+                    resp = getattr(cmnds, cmnd[0])(cmnd[1])
+                except AttributeError:
+                    resp = 'Unknown command'
+            else:
+                resp = 'Too many ":"'
             self.msg(self.factory.channel, prefix + resp)
 
 class MacarronicBotFactory(protocol.ClientFactory):
@@ -54,12 +65,8 @@ def main():
     chan = sys.argv[2]
     reactor.connectTCP('irc.freenode.net', 6667,
                        MacarronicBotFactory('#' + chan, nickname=nick))
-    #nl.kb.open(nick)
-    try:
-        reactor.run()
-    finally:
-    #    nl.kb.close()
-        pass
+    nl.kb.open(nick)
+    reactor.run()
 
 
 if __name__ == "__main__":
