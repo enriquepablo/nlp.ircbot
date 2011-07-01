@@ -6,8 +6,9 @@ version = '0.1'
 setup(name='nlp.ircbot',
       version=version,
       description="nl irc bot",
-      long_description=open("README.txt").read() + "\n" +
-                       open(os.path.join("docs", "HISTORY.txt")).read(),
+      long_description='nl irc bot',
+      #long_description=open("README.txt").read() + "\n" +
+      #                 open(os.path.join("docs", "HISTORY.txt")).read(),
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
@@ -24,6 +25,9 @@ setup(name='nlp.ircbot',
       zip_safe=False,
       install_requires=[
           'setuptools',
+          'nl',
+          'twisted',
+          'ply',
           # -*- Extra requirements: -*-
       ],
       entry_points={
