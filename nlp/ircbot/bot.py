@@ -26,7 +26,10 @@ class MacarronicBot(irc.IRCClient):
         if user and self.nickname in msg:
             msg = re.compile(self.nickname + "[:,]* ?", re.I).sub('', msg)
             prefix = user.split('!', 1)[0] + ': '
-            resp = yacc.parse(msg)
+            if msg == 'hola':
+                resp = u'qué tal'
+            else:
+                resp = yacc.parse(msg)
             self.msg(self.factory.channel, prefix + resp)
 
 class MacarronicBotFactory(protocol.ClientFactory):
@@ -44,8 +47,7 @@ class MacarronicBotFactory(protocol.ClientFactory):
         print "Could not connect: %s" % (reason,)
 
 
-
-if __name__ == "__main__":
+def main():
     nick = sys.argv[1]
     chan = sys.argv[2]
     reactor.connectTCP('irc.freenode.net', 6667,
@@ -55,3 +57,7 @@ if __name__ == "__main__":
         reactor.run()
     finally:
         nl.kb.close()
+
+
+if __name__ == "__main__":
+    main()
