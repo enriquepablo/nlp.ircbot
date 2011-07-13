@@ -27,7 +27,6 @@ setup(name='nlp.ircbot',
           'setuptools',
           'nl',
           'twisted',
-          'ply',
           # -*- Extra requirements: -*-
       ],
       entry_points={

@@ -33,6 +33,7 @@ class MacarronicBot(irc.IRCClient):
             cmnd = msg.split(':')
             if len(cmnd) == 1:
                 resp = yacc.parse(msg)
+                nl.kb.to_history(msg)
                 if resp is None:
                     resp = 'Do not understand'
             elif len(cmnd) == 2:
