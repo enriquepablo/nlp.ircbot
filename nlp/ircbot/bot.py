@@ -38,9 +38,11 @@ class MacarronicBot(irc.IRCClient):
                     resp = 'Do not understand'
             elif len(cmnd) == 2:
                 try:
-                    resp = getattr(cmnds, cmnd[0])(cmnd[1])
+                    fun = getattr(cmnds, cmnd[0])
                 except AttributeError:
                     resp = 'Unknown command'
+                else:
+                    resp = fun(cmnd[1])
             else:
                 resp = 'Too many ":"'
             self.msg(self.factory.channel, prefix + resp)

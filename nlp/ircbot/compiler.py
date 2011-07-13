@@ -1,45 +1,47 @@
 """
-question = sentence, QMARK;
+satatement = sentence, QMARK;
 
-assertion = sentence, DOT;
+statement = sentence, DOT;
 
 sentence = fact;
 
 sentence = copula;
 
-copula = varsymbol, ISA, SYMBOL;
+copula = SYMBOL, ISA, SYMBOL;
 
-fact = varsymbol, predicate, time;
+fact = VAR, predicate, time;
 
-varsymbol = SYMBOL;
+fact = SYMBOL, predicate, time;
 
-varsymbol = VAR;
+fact = VAR, VAR, time;
 
-time = time, time;
+fact = SYMBOL, VAR, time;
 
-time = TIME;
+time = AT instant;
 
-time = NOW;
+time = FROM instant TILL instant;
 
-time = VAR;
+instant = TIME;
 
-predicate = VAR;
+instant = NOW;
 
-predicate = varsymbol, items;
+instant = VAR;
+
+predicate = SYMBOL, items;
 
 items = modifier, items;
 
+items = modifier;
+
 items = ;
 
-modifier = SYMBOL, modificator;
+modifier = SYMBOL, VAR, COMMA;
 
-modificator = SYMBOL;
+modifier = SYMBOL, SYMBOL, COMMA;
 
-modificator = predicate;
+modifier = SYMBOL, predicate, COMMA;
 
-modificator = NUMBER;
-
-modificator = VAR;
+modifier = SYMBOL, NUMBER, COMMA;
 """
 import re
 import nl
@@ -48,25 +50,28 @@ import ply.yacc as yacc
 # Get the token map from the lexer.  This is required.
 from nlp.ircbot.lexer import tokens
 
-VAR_PAT = re.compile(r'([A-Z][a-zA-Z]+)(\d+)')
+VAR_PAT = re.compile(r'^([A-Z][a-zA-Z]+)(\d+)$')
 
+precedence = (
+    ('left', 'COMMA'),
+        )
 
 # UTILS
 
-def _from_var(p):
-    match = VAR_PAT.match(p[1])
+def _from_var(var):
+    match = VAR_PAT.match(var)
     cls = nl.utils.get_class(match.group(1))
-    return cls(p[1])
+    return cls(var)
 
 # BNF
 
 def p_question(p):
-    'question : sentence QMARK'
+    'statement : sentence QMARK'
     response = nl.kb.ask(p[1])
     p[0] = str(response)
 
 def p_assertion(p):
-    'assertion : sentence DOT'
+    'statement : sentence DOT'
     response = nl.kb.tell(p[1])
     p[0] = str(response)
 
@@ -79,77 +84,80 @@ def p_sentence_copula(p):
     p[0] = p[1]
 
 def p_copula(p):
-    'copula : varsymbol ISA SYMBOL'
+    'copula : SYMBOL ISA SYMBOL'
     cls = nl.utils.get_class(p[3].capitalize())
     p[0] = cls(p[1])
 
-def p_fact(p):
-    'fact : varsymbol predicate time'
-    p[0] = nl.Fact(*p[1:])
+def p_fact_var_pred(p):
+    'fact : VAR predicate time'
+    p[0] = nl.Fact(_from_var(p[1]), p[2], p[3])
 
-def p_varsymbol_symbol(p):
-    'varsymbol : SYMBOL'
-    p[0] = nl.utils.get_symbol(p[1]) or p[1] # get_symbol intenta recuperar una clase y si no puede pregunta por una thing
+def p_fact_symbol_pred(p):
+    'fact : SYMBOL predicate time'
+    p[0] = nl.Fact(*(p[1:]))
 
-def p_varsymbol_var(p):
-    'varsymbol : VAR'
-    p[0] = _from_var(p)
+def p_fact_var_var(p):
+    'fact : VAR VAR time'
+    p[0] = nl.Fact(_from_var(p[1]), _from_var(p[2]), p[3])
 
-def p_time_time_time(p):
-    'time : time time'
-    p[0] = nl.Duration(start=p[1], end=p[2])
+def p_fact_symbol_var(p):
+    'fact : SYMBOL VAR time'
+    p[0] = nl.Fact(p[1], _from_var(p[2]), p[3])
 
-def p_time_time(p):
-    'time : TIME'
+def p_time_instant(p):
+    'time : AT instant'
+    p[0] = p[2]
+
+def p_time_duration(p):
+    'time : FROM instant TILL instant'
+    p[0] = nl.Duration(start=p[2], end=p[4])
+
+def p_instant_time(p):
+    'instant : TIME'
     p[0] = nl.Instant(p[1])
 
-def p_time_now(p):
-    'time : NOW'
+def p_instant_now(p):
+    'instant : NOW'
     p[0] = nl.Instant('now')
 
 def p_time_var(p):
-    'time : VAR'
-    p[0] = _from_var(p)
-
-def p_predicate_var(p):
-    'predicate : VAR'
-    p[0] = _from_var(p)
+    'instant : VAR'
+    p[0] = _from_var(p[1])
 
 def p_predicate(p):
-    'predicate : varsymbol items'
-    p[0] = p[1](**dict(p[2]))
+    'predicate : SYMBOL items'
+    cls = nl.utils.get_class(p[1].capitalize())
+    kwargs = p[2] and dict(p[2]) or {}
+    p[0] = cls(**kwargs)
  
 def p_items(p):
     'items : modifier items'
     p[0] = [p[1]] + p[2]
  
-def p_items_empty(p):
-    'items : empty'
-    p[0] = []
+#def p_items_one(p):
+#    'items : modifier'
+#    p[0] = [p[1]]
  
-def p_empty(p):
-    'empty :'
+def p_items_empty(p):
+    'items :'
     pass
+ 
+def p_modifier_symbol(p):
+    'modifier : SYMBOL SYMBOL COMMA'
+    thing = nl.kb.ask_obj(nl.Thing(p[2]))[0]
+    p[0] = (p[1], thing)
 
-def p_modifier(p):
-    'modifier : SYMBOL modificator'
+def p_modifier_var(p):
+    'modifier : SYMBOL VAR COMMA'
+    p[0] = (p[1], _from_var(p[2]))
+
+def p_modifier_pred(p):
+    'modifier : SYMBOL predicate COMMA'
     p[0] = (p[1], p[2])
 
-def p_modificator_symbol(p):
-    'modificator : SYMBOL'
-    p[0] = nl.utils.get_symbol(p[1]) # get_symbol intenta recuperar una clase y si no puede pregunta por una thing
-
-def p_modificator_predicate(p):
-    'modificator : predicate'
-    p[0] = p[1]
-
-def p_modificator_number(p):
-    'modificator : NUMBER'
-    p[0] = p[1]
-
-def p_modificator_var(p):
-    'modificator : VAR'
-    p[0] = _from_var(p)
+def p_modifier_number(p):
+    'modifier : SYMBOL NUMBER COMMA'
+    p[0] = (p[1], int(p[2]))
 
 
 # Error rule for syntax errors

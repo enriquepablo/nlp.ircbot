@@ -1,39 +1,4 @@
 """
-question = sentence, QMARK;
-
-assertion = sentence, DOT;
-
-sentence = proposition;
-
-sentence = copula;
-
-copula = varsymbol, ISA, SYMBOL;
-
-proposition = varsymbol, predicate, time;
-
-varsymbol = SYMBOL;
-
-varsymbol = VAR;
-
-time = TIME;
-
-time = NOW;
-
-time = VAR;
-
-predicate = VAR;
-
-predicate = varsymbol, { modifier };
-
-modifier = SYMBOL, modificator;
-
-modificator = SYMBOL;
-
-modificator = predicate;
-
-modificator = NUMBER;
-
-modificator = VAR;
 """
 
 import datetime
@@ -49,13 +14,21 @@ tokens = (
     'NUMBER',
     'TIME',
     'NOW',
+    'COMMA',
+    'AT',
+    'FROM',
+    'TILL',
 )
 
 reserved = {
     'isa': 'ISA',
     'now': 'NOW',
+    'at': 'AT',
+    'from': 'FROM',
+    'til': 'TILL',
 }
 
+t_COMMA = r','
 t_DOT = r'\.'
 t_QMARK = r'\?'
 t_VAR = r'[A-Z][A-Za-z]+[0-9]+'
