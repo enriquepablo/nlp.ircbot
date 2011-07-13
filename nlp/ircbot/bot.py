@@ -6,7 +6,7 @@ import nl
 from twisted.words.protocols import irc
 from twisted.internet import protocol
 from twisted.internet import reactor
-from nlp.ircbot.compiler import yacc
+from nl.nlc.compiler import yacc
 from nlp.ircbot import cmnds
 
 partial_msg = ''
