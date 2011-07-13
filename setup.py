@@ -30,6 +30,6 @@ setup(name='nlp.ircbot',
           # -*- Extra requirements: -*-
       ],
       entry_points={
-          'console_scripts': ['ircbot = ircbot.bot:main'],
+          'console_scripts': ['ircbot = nlp.ircbot.bot:main'],
           },
       )

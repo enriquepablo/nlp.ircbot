@@ -73,7 +73,7 @@ def main():
     chan = 'nlpbot_%s' % name
     reactor.connectTCP('irc.freenode.net', 6667,
                        MacarronicBotFactory(name, '#' + chan, nick))
-    nl.kb.open(nick)
+    nl.kb.open(name)
     reactor.run()
 
 
