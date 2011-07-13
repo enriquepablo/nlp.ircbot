@@ -15,7 +15,6 @@ partial = False
 
 class MacarronicBot(irc.IRCClient):
 
-
     def _get_nickname(self):
         return self.factory.nickname
     nickname = property(_get_nickname)
@@ -47,10 +46,12 @@ class MacarronicBot(irc.IRCClient):
                 resp = 'Too many ":"'
             self.msg(self.factory.channel, prefix + resp)
 
+
 class MacarronicBotFactory(protocol.ClientFactory):
     protocol = MacarronicBot
 
-    def __init__(self, channel, nickname='luis_ricardo'):
+    def __init__(self, name, channel, nickname):
+        self.name = name
         self.channel = channel
         self.nickname = nickname
 
@@ -63,10 +64,14 @@ class MacarronicBotFactory(protocol.ClientFactory):
 
 
 def main():
-    nick = sys.argv[1]
-    chan = sys.argv[2]
+    try:
+        name = sys.argv[1]
+    except KeyError:
+        name = 'test'
+    nick = '%s_bot' % name
+    chan = 'nlpbot_%s' % name
     reactor.connectTCP('irc.freenode.net', 6667,
-                       MacarronicBotFactory('#' + chan, nickname=nick))
+                       MacarronicBotFactory(name, '#' + chan, nick))
     nl.kb.open(nick)
     reactor.run()
 
