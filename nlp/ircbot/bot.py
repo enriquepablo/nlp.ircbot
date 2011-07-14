@@ -33,7 +33,6 @@ class MacarronicBot(irc.IRCClient):
             cmnd = msg.split(':')
             if len(cmnd) == 1:
                 resp = yacc.parse(msg)
-                nl.kb.to_history(msg)
                 if resp is None:
                     resp = 'Do not understand'
             elif len(cmnd) == 2:
@@ -67,13 +66,13 @@ class MacarronicBotFactory(protocol.ClientFactory):
 def main():
     try:
         name = sys.argv[1]
-    except KeyError:
+    except IndexError:
         name = 'test'
     nick = '%s_bot' % name
     chan = 'nlpbot_%s' % name
     reactor.connectTCP('irc.freenode.net', 6667,
                        MacarronicBotFactory(name, '#' + chan, nick))
-    nl.kb.open(name)
+    nl.kb.open_kb(name)
     reactor.run()
 
 
