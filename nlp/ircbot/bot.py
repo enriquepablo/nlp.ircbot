@@ -43,8 +43,8 @@ class MacarronicBot(irc.IRCClient):
                 else:
                     resp = fun(cmnd[1])
             else:
-                resp = 'Too many ":"'
-            self.msg(self.factory.channel, prefix + resp)
+                resp = yacc.parse(':'.join(cmnd))
+            self.msg(self.factory.channel, prefix + str(resp))
 
 
 class MacarronicBotFactory(protocol.ClientFactory):
@@ -68,8 +68,8 @@ def main():
         name = sys.argv[1]
     except IndexError:
         name = 'test'
-    nick = '%s_bot' % name
-    chan = 'nlpbot_%s' % name
+    nick = name + '_bot'
+    chan = 'nlpbot_' + name
     reactor.connectTCP('irc.freenode.net', 6667,
                        MacarronicBotFactory(name, '#' + chan, nick))
     nl.kb.open_kb(name)
