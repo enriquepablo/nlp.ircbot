@@ -2,12 +2,11 @@
 
 import re
 import sys
-import nl
+from collections import defaultdict
 from twisted.words.protocols import irc
 from twisted.internet import protocol
 from twisted.internet import reactor
-from nl.nlc.compiler import yacc
-from nlp.ircbot import cmnds
+import nl
 
 partial_msg = ''
 partial = False
@@ -20,6 +19,7 @@ class MacarronicBot(irc.IRCClient):
     nickname = property(_get_nickname)
 
     def signedOn(self):
+        self.nl_buff = defaultdict(str)
         self.join(self.factory.channel)
         print "Signed on as %s." % (self.nickname,)
 
@@ -29,21 +29,17 @@ class MacarronicBot(irc.IRCClient):
     def privmsg(self, user, channel, msg):
         if user and self.nickname in msg:
             msg = re.compile(self.nickname + "[:, ]*", re.I).sub('', msg)
-            prefix = user.split('!', 1)[0] + ': '
-            cmnd = msg.split(':')
-            if len(cmnd) == 1:
-                resp = yacc.parse(msg)
-                if resp is None:
-                    resp = 'Do not understand'
-            elif len(cmnd) == 2:
-                try:
-                    fun = getattr(cmnds, cmnd[0])
-                except AttributeError:
-                    resp = 'Unknown command'
-                else:
-                    resp = fun(cmnd[1])
+            other = user.split('!', 1)[0]
+            prefix = other + ': '
+            msg = msg.strip()
+            self.nl_buff[other] += ' ' + msg
+            if self.nl_buff[other][-1] in ('.', '?'):
+                resp = nl.yacc.parse(self.nl_buff[other])
+                self.nl_buff[other] = ''
             else:
-                resp = yacc.parse(':'.join(cmnd))
+                resp = '...'
+            if resp is None:
+                resp = 'Do not understand'
             self.msg(self.factory.channel, prefix + str(resp))
 
 
