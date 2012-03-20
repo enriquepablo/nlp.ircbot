@@ -33,9 +33,13 @@ class MacarronicBot(irc.IRCClient):
             prefix = other + ': '
             msg = msg.strip()
             self.nl_buff[other] += ' ' + msg
-            if self.nl_buff[other][-1] in ('.', '?'):
+            lastchar = self.nl_buff[other][-1]
+            if lastchar in ('.', '?'):
                 resp = nl.yacc.parse(self.nl_buff[other])
                 self.nl_buff[other] = ''
+                if lastchar == '.':
+                    nl.extend()
+                    nl.now()
             else:
                 resp = '...'
             if resp is None:
