@@ -7,6 +7,8 @@ from twisted.words.protocols import irc
 from twisted.internet import protocol
 from twisted.internet import reactor
 import nl
+from nl.nlc.utils import parse
+from nl.nlc.preprocessor import Preprocessor
 
 partial_msg = ''
 partial = False
@@ -21,6 +23,7 @@ class MacarronicBot(irc.IRCClient):
     def signedOn(self):
         self.nl_buff = defaultdict(str)
         self.join(self.factory.channel)
+        self.preprocessor = Preprocessor()
         print "Signed on as %s." % (self.nickname,)
 
     def joined(self, channel):
@@ -35,7 +38,7 @@ class MacarronicBot(irc.IRCClient):
             self.nl_buff[other] += ' ' + msg
             lastchar = self.nl_buff[other][-1]
             if lastchar in ('.', '?'):
-                resp = nl.yacc.parse(self.nl_buff[other])
+                resp = parse(self.nl_buff[other], self.preprocessor)
                 self.nl_buff[other] = ''
                 if lastchar == '.':
                     nl.extend()
