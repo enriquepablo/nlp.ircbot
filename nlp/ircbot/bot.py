@@ -41,7 +41,7 @@ class MacarronicBot(irc.IRCClient):
                 resp = parse(self.nl_buff[other], self.preprocessor)
                 self.nl_buff[other] = ''
                 if lastchar == '.':
-                    nl.extend()
+                    nl.kb.extend()
                     nl.now()
             else:
                 resp = '...'
